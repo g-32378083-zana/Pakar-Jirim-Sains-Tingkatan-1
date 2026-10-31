@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pakar Jirim - Sains Tingkatan 1 Bab 5</title>
+    <style>
+        :root {
+            --primary: #0284c7;
+            --primary-dark: #0369a1;
+            --secondary: #38bdf8;
+            --bg-color: #f0f9ff;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --success: #16a34a;
+            --error: #dc2626;
+            --border-radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+        }
+
+        .quiz-container {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 650px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            padding: 24px;
+            position: relative;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0f2fe;
+            padding-bottom: 16px;
+        }
+
+        .header h1 {
+            color: var(--primary-dark);
+            font-size: 1.5rem;
+            margin-bottom: 4px;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            background-color: #e2e8f0;
+            height: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background-color: var(--primary);
+            transition: width 0.3s ease;
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+            color: var(--text-muted);
+        }
+
+        .question-box {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .option-btn {
+            background: #f8fafc;
+            border: 2px solid #cbd5e1;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background: #e0f2fe;
+            border-color: var(--primary);
+        }
+
+        .option-btn.correct {
+            background: #dcfce7 !important;
+            border-color: var(--success) !important;
+            color: #14532d;
+            font-weight: bold;
+        }
+
+        .option-btn.wrong {
+            background: #fee2e2 !important;
+            border-color: var(--error) !important;
+            color: #7f1d1d;
+        }
+
+        .explanation-box {
+            background: #f0fdf4;
+            border-left: 4px solid var(--success);
+            padding: 12px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .explanation-box.wrong-exp {
+            background: #fef2f2;
+            border-left-color: var(--error);
+        }
+
+        .action-btn {
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            display: none;
+        }
+
+        .action-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .result-screen {
+            text-align: center;
+            display: none;
+        }
+
+        .result-screen h2 {
+            color: var(--primary-dark);
+            margin-bottom: 12px;
+        }
+
+        .badge {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary);
+            background: #e0f2fe;
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: inline-block;
+            margin: 12px 0;
+        }
+
+        .restart-btn {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 16px;
+        }
+
+        @media (max-width: 480px) {
+            .quiz-container {
+                padding: 16px;
+            }
+            .question-box {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <div class="header">
+        <h1>🧪 Pakar Jirim</h1>
+        <p>Sains Tingkatan 1 - Bab 5: Jirim</p>
+    </div>
+
+    <!-- Screen Quiz -->
+    <div id="quiz-screen">
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <div class="stats-bar">
+            <span id="question-count">Soalan 1/30</span>
+            <span id="streak-count">🔥 Streak: 0</span>
+        </div>
+        <div class="question-box" id="question-text">Pemuatan soalan...</div>
+        <div class="options-grid" id="options-container"></div>
+        <div class="explanation-box" id="explanation-box"></div>
+        <button class="action-btn" id="next-btn" onclick="nextQuestion()">Soalan Seterusnya ➔</button>
+    </div>
+
+    <!-- Screen Keputusan -->
+    <div class="result-screen" id="result-screen">
+        <h2>🎉 Tahniah! Anda Telah Tamat!</h2>
+        <p>Markah Keseluruhan Anda:</p>
+        <h1 id="final-score" style="font-size: 3rem; color: var(--primary-dark); margin: 10px 0;">0 / 30</h1>
+        <div class="badge" id="rank-badge">Gelaran: Novis Jirim</div>
+        <p id="result-feedback" style="margin-top: 10px; color: var(--text-muted);"></p>
+        <button class="restart-btn" onclick="restartQuiz()">Cuba Lagi 🔄</button>
+    </div>
+</div>
+
+<script>
+const questions = [
+    {
+        q: "1. Antara berikut, yang manakah mendefinisikan jirim?",
+        options: ["Sesuatu yang mempunyai jisim dan memenuhi ruang", "Sesuatu yang boleh dilihat sahaja", "Sesuatu yang mempunyai bentuk tetap sahaja", "Sesuatu yang menghasilkan tenaga"],
+        correct: 0,
+        exp: "Jirim didefinisikan sebagai bahan yang mempunyai jisim dan memenuhi ruang."
+    },
+    {
+        q: "2. Antara berikut, yang manakah BUKAN merupakan jirim?",
+        options: ["Batu", "Cahaya", "Air", "Udara"],
+        correct: 1,
+        exp: "Cahaya, haba, dan bunyi adalah bentuk tenaga, maka ia bukan jirim kerana tidak mempunyai jisim atau memenuhi ruang."
+    },
+    {
+        q: "3. Tiga keadaan jirim yang utama ialah...",
+        options: ["Pepejal, Cecair, dan Gas", "Air, Ais, dan Wap", "Atom, Molekul, dan Unsur", "Panas, Sejuk, dan Suam"],
+        correct: 0,
+        exp: "Tiga keadaan jirim yang utama ialah pepejal, cecair, dan gas."
+    },
+    {
+        q: "4. Apakah yang berlaku kepada pergerakan zarah-zarah apabila suhu sesuatu jirim meningkat?",
+        options: ["Zarah bergerak lebih lambat", "Zarah bergerak lebih cepat", "Zarah berhenti bergerak", "Zarah menjadi lebih besar"],
+        correct: 1,
+        exp: "Peningkatan suhu memberi tenaga kinetik kepada zarah, menyebabkan zarah bergerak atau bergetar lebih cepat."
+    },
+    {
+        q: "5. Keadaan jirim yang manakah mempunyai bentuk dan isipadu yang tetap?",
+        options: ["Cecair", "Gas", "Pepejal", "Plasma"],
+        correct: 2,
+        exp: "Pepejal mempunyai bentuk dan isipadu yang tetap kerana zarah-zarahnya tersusun rapat dan teratur."
+    },
+    {
+        q: "6. Keadaan jirim yang manakah mengambil bentuk bekasnya tetapi mempunyai isipadu tetap?",
+        options: ["Pepejal", "Cecair", "Gas", "Vakum"],
+        correct: 1,
+        exp: "Cecair mengambil bentuk bekas yang diisinya tetapi isipadunya kekal tetap."
+    },
+    {
+        q: "7. Antara sifat berikut, yang manakah benar bagi gas?",
+        options: ["Tidak mempunyai bentuk tetap dan tiada isipadu tetap", "Mempunyai bentuk tetap", "Sukar dimampatkan", "Zarah-zarahnya tersusun teratur"],
+        correct: 0,
+        exp: "Gas tidak mempunyai bentuk atau isipadu tetap dan mengembang mengikut ruang bekasnya."
+    },
+    {
+        q: "8. Proses perubahan jirim daripada pepejal kepada cecair dinamakan sebagai...",
+        options: ["Pembekuan", "Peleburan", "Penyejatan", "Sublimasi"],
+        correct: 1,
+        exp: "Peleburan ialah proses apabila pepejal menyerap haba dan bertukar menjadi cecair."
+    },
+    {
+        q: "9. Proses perubahan cecair menjadi pepejal dipanggil...",
+        options: ["Pembekuan", "Pengembunan", "Pendidihan", "Pendepositan"],
+        correct: 0,
+        exp: "Pembekuan berlaku apabila cecair membebaskan haba dan bertukar menjadi pepejal."
+    },
+    {
+        q: "10. Apakah proses yang berlaku apabila cecair bertukar menjadi gas pada sebarang suhu di bawah takat didih?",
+        options: ["Pendidihan", "Penyejatan", "Sublimasi", "Pengembunan"],
+        correct: 1,
+        exp: "Penyejatan berlaku secara perlahan di permukaan cecair pada sebarang suhu di bawah takat didih."
+    },
+    {
+        q: "11. Apakah perbezaan utama antara penyejatan dan pendidihan?",
+        options: ["Penyejatan berlaku pada seluruh cecair, pendidihan di permukaan sahaja", "Pendidihan berlaku pada takat didih tertentu, penyejatan pada sebarang suhu di bawah takat didih", "Penyejatan memerlukan haba yang sangat tinggi", "Pendidihan tidak melibatkan perubahan keadaan jirim"],
+        correct: 1,
+        exp: "Pendidihan berlaku pada takat didih spesifik di seluruh bahagian cecair, manakala penyejatan berlaku di permukaan pada sebarang suhu."
+    },
+    {
+        q: "12. Proses pengembunan (kondensasi) melibatkan perubahan daripada...",
+        options: ["Gas kepada cecair", "Cecair kepada pepejal", "Pepejal kepada gas", "Gas kepada pepejal"],
+        correct: 0,
+        exp: "Pengembunan ialah proses di mana gas membebaskan haba untuk bertukar menjadi cecair (contoh: pembentukan tetesan air di luar gelas sejuk)."
+    },
+    {
+        q: "13. Sublimasi ialah proses perubahan jirim secara terus daripada...",
+        options: ["Pepejal terus kepada gas", "Gas terus kepada cecair", "Cecair terus kepada pepejal", "Pepejal terus kepada cecair"],
+        correct: 0,
+        exp: "Sublimasi ialah perubahan pepejal terus menjadi gas tanpa melalui fasa cecair (contoh: ubat ngat/naphthalene)."
+    },
+    {
+        q: "14. Antara bahan berikut, yang manakah mengalami sublimasi?",
+        options: ["Ais batu", "Ubat ngat (Naphthalene)", "Minyak masak", "Garam dapur"],
+        correct: 1,
+        exp: "Ubat ngat dan ais kering (karbon dioksida pepejal) adalah contoh bahan yang mengalami sublimasi."
+    },
+    {
+        q: "15. Mengapakah gas mudah dimampatkan berbanding pepejal?",
+        options: ["Zarah gas lebih kecil daripada zarah pepejal", "Ruang di antara zarah gas adalah sangat besar", "Zarah gas tidak mempunyai jisim", "Zarah pepejal bergerak terlalu cepat"],
+        correct: 1,
+        exp: "Ruang kosong yang besar di antara zarah-zarah gas membolehkannya dimampatkan dengan mudah."
+    },
+    {
+        q: "16. Apakah yang dimaksudkan dengan kadar resapan?",
+        options: ["Kelajuan zarah-zarah jirim bergerak dan bercampur dalam medium lain", "Masa untuk pepejal melebur", "Isipadu air yang tersejat dalam seminit", "Berat zarah dalam jirim"],
+        correct: 0,
+        exp: "Kadar resapan ialah kelajuan zarah-zarah satu bahan bergerak dan bercampur ke dalam bahan lain."
+    },
+    {
+        q: "17. Kadar resapan adalah paling tinggi dalam keadaan jirim...",
+        options: ["Pepejal", "Cecair", "Gas", "Semua sama"],
+        correct: 2,
+        exp: "Kadar resapan paling tinggi dalam gas kerana zarah-zarahnya mempunyai tenaga kinetik tinggi dan bergerak bebas."
+    },
+    {
+        q: "18. Mengapakah bau masakan di dapur boleh dihidu sampai ke bilik tidur?",
+        options: ["Kerana proses peleburan", "Kerana resapan zarah-zarah bau dalam udara", "Kerana udara mengembang", "Kerana proses pengembunan"],
+        correct: 1,
+        exp: "Zarah-zarah bau masakan meresap secara rawak melalui ruang udara dari kawasan berkepekatan tinggi ke kawasan rendah."
+    },
+    {
+        q: "19. Apakah yang berlaku kepada jisim sesuatu jirim semasa perubahan keadaan fizikal?",
+        options: ["Jisim bertambah", "Jisim berkurang", "Jisim kekal tidak berubah", "Jisim menjadi sifar"],
+        correct: 2,
+        exp: "Menurut Hukum Keabadian Jisim, jisim sesuatu jirim adalah kekal tidak berubah semasa perubahan fizikal."
+    },
+    {
+        q: "20. Suhu di mana cecair bertukar menjadi gas pada tekanan atmosfera standard dipanggil...",
+        options: ["Takat lebur", "Takat beku", "Takat didih", "Takat sublimasi"],
+        correct: 2,
+        exp: "Takat didih ialah suhu tetap di mana cecair bertukar menjadi gas."
+    },
+    {
+        q: "21. Apakah takat lebur bagi ais tulen?",
+        options: ["100 °C", "0 °C", "-10 °C", "50 °C"],
+        correct: 1,
+        exp: "Takat lebur ais tulen (dan takat beku air) pada tekanan biasa ialah 0 °C."
+    },
+    {
+        q: "22. Semasa proses peleburan ais, apakah yang berlaku kepada suhunya?",
+        options: ["Suhu terus meningkat", "Suhu kekal tetap di 0 °C sehingga semua ais melebur", "Suhu menurun bawah 0 °C", "Suhu turun dan naik"],
+        correct: 1,
+        exp: "Semasa perubahan keadaan jirim, suhu kekal dimalarkan kerana haba yang diserap digunakan untuk mengatasi daya tarikan antara zarah."
+    },
+    {
+        q: "23. Daya tarikan antara zarah adalah paling kuat dalam...",
+        options: ["Pepejal", "Cecair", "Gas", "Wap"],
+        correct: 0,
+        exp: "Daya tarikan antara zarah pepejal sangat kuat, memegang zarah-zarah pada kedudukan tetap."
+    },
+    {
+        q: "24. Antara berikut, yang manakah susunan zarah yang BETUL mengikut urutan daya tarikan zarah semakin berkurang?",
+        options: ["Pepejal -> Cecair -> Gas", "Gas -> Cecair -> Pepejal", "Cecair -> Pepejal -> Gas", "Pepejal -> Gas -> Cecair"],
+        correct: 0,
+        exp: "Daya tarikan paling kuat dalam pepejal, sederhana dalam cecair, dan paling lemah dalam gas."
+    },
+    {
+        q: "25. Mengapakah tayar kereta kelihatan kempis sedikit pada musim sejuk berbanding musim panas?",
+        options: ["Udara di dalam tayar terlepas keluar", "Zarah udara di dalam tayar mengecut dan merapat kerana kehilangan haba", "Tayar bertambah berat", "Daya tarikan zarah bertambah besar"],
+        correct: 1,
+        exp: "Apabila suhu sejuk, udara membebaskan haba, tenaga kinetik zarah berkurang dan bergerak rapat (mengecut)."
+    },
+    {
+        q: "26. Apakah yang dinamakan proses perubahan gas terus menjadi pepejal?",
+        options: ["Sublimasi", "Pendepositan", "Pengembunan", "Pembekuan"],
+        correct: 1,
+        exp: "Pendepositan (deposition) ialah proses songsang bagi sublimasi, iaitu gas bertukar terus kepada pepejal."
+    },
+    {
+        q: "27. Kertas turus basah disapu dengan larutan kuprum(II) sulfat. Apakah fenomena yang menyebabkan warna biru merebak?",
+        options: ["Peleburan", "Resapan", "Penyejatan", "Pendidihan"],
+        correct: 1,
+        exp: "Penyebaran warna biru kuprum(II) sulfat pada kertas turus berpunca daripada fenomena resapan zarah."
+    },
+    {
+        q: "28. Apakah yang berlaku kepada ketumpatan cecair apabila ia dipanaskan?",
+        options: ["Ketumpatan bertambah", "Ketumpatan berkurang kerana cecair mengembang", "Ketumpatan kekal sama", "Ketumpatan menjadi sifar"],
+        correct: 1,
+        exp: "Apabila cecair dipanaskan, ia mengembang (isipadu bertambah), menyebabkan ketumpatannya berkurang."
+    },
+    {
+        q: "29. Mengapakah ais terapung di atas air?",
+        options: ["Ais lebih tumpat daripada air", "Ais kurang tumpat daripada air cecair", "Ais tiada jisim", "Ais mengandungi banyak udara"],
+        correct: 1,
+        exp: "Struktur hablur ais menyebabkan isipadunya bertambah semasa membeku, menjadikannya kurang tumpat daripada air."
+    },
+    {
+        q: "30. Teori yang menyatakan bahawa jirim terdiri daripada zarah-zarah kecil dan diskrit yang sentiasa bergerak dipanggil...",
+        options: ["Teori Atom", "Teori Kinetik Jirim", "Teori Keabadian Jirim", "Teori Graviti"],
+        correct: 1,
+        exp: "Teori Kinetik Jirim menerangkan bahawa jirim dibentuk oleh zarah-zarah halus yang sentiasa bergerak dan bergetar."
+    }
+];
+
+let currentQ = 0;
+let score = 0;
+let streak = 0;
+let answered = false;
+
+function loadQuestion() {
+    answered = false;
+    const qData = questions[currentQ];
+    
+    document.getElementById("question-count").innerText = `Soalan ${currentQ + 1}/${questions.length}`;
+    document.getElementById("progress-bar").style.width = `${((currentQ) / questions.length) * 100}%`;
+    document.getElementById("streak-count").innerText = `🔥 Streak: ${streak}`;
+    document.getElementById("question-text").innerText = qData.q;
+    
+    const optionsContainer = document.getElementById("options-container");
+    optionsContainer.innerHTML = "";
+    
+    document.getElementById("explanation-box").style.display = "none";
+    document.getElementById("next-btn").style.display = "none";
+
+    qData.options.forEach((opt, index) => {
+        const btn = document.createElement("button");
+        btn.className = "option-btn";
+        btn.innerText = opt;
+        btn.onclick = () => selectAnswer(index);
+        optionsContainer.appendChild(btn);
+    });
+}
+
+function selectAnswer(index) {
+    if (answered) return;
+    answered = true;
+
+    const qData = questions[currentQ];
+    const btns = document.querySelectorAll(".option-btn");
+    const expBox = document.getElementById("explanation-box");
+
+    btns.forEach(btn => btn.disabled = true);
+
+    if (index === qData.correct) {
+        btns[index].classList.add("correct");
+        score++;
+        streak++;
+        expBox.className = "explanation-box";
+        expBox.innerHTML = `<strong>Tepat!</strong> ${qData.exp}`;
+    } else {
+        btns[index].classList.add("wrong");
+        btns[qData.correct].classList.add("correct");
+        streak = 0;
+        expBox.className = "explanation-box wrong-exp";
+        expBox.innerHTML = `<strong>Kurang Tepat!</strong> Jawapan betul ialah: <em>${qData.options[qData.correct]}</em>.<br>${qData.exp}`;
+    }
+
+    document.getElementById("streak-count").innerText = `🔥 Streak: ${streak}`;
+    expBox.style.display = "block";
+    document.getElementById("next-btn").style.display = "block";
+}
+
+function nextQuestion() {
+    currentQ++;
+    if (currentQ < questions.length) {
+        loadQuestion();
+    } else {
+        showResults();
+    }
+}
+
+function showResults() {
+    document.getElementById("quiz-screen").style.display = "none";
+    const resScreen = document.getElementById("result-screen");
+    resScreen.style.display = "block";
+
+    document.getElementById("final-score").innerText = `${score} / ${questions.length}`;
+
+    let badge = "Novis Jirim";
+    let feedback = "Boleh cuba lagi untuk meningkatkan kefahaman Bab 5!";
+
+    if (score >= 27) {
+        badge = "🏆 Profesor Jirim Utuh";
+        feedback = "Cemerlang! Anda menguasai Teori Kinetik & Keadaan Jirim dengan sempurna!";
+    } else if (score >= 20) {
+        badge = "🥇 Pakar Jirim";
+        feedback = "Syabas! Kefahaman anda mengenai sifat dan perubahan jirim sangat baik!";
+    } else if (score >= 15) {
+        badge = "🥈 Pembantu Makmal Sains";
+        feedback = "Usaha yang bagus! Ulang kaji sikit lagi untuk skor lebih tinggi.";
+    }
+
+    document.getElementById("rank-badge").innerText = `Gelaran: ${badge}`;
+    document.getElementById("result-feedback").innerText = feedback;
+}
+
+function restartQuiz() {
+    currentQ = 0;
+    score = 0;
+    streak = 0;
+    document.getElementById("result-screen").style.display = "none";
+    document.getElementById("quiz-screen").style.display = "block";
+    loadQuestion();
+}
+
+// Mulakan Kuis
+loadQuestion();
+</script>
+
+</body>
+</html>
